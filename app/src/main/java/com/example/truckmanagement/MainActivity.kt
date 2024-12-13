@@ -207,7 +207,9 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
 
         Spacer(modifier=modifier.height(8.dp))
 
-        datum = DatePickerDocked(Modifier).toString()
+        DatePickerDocked(modifier = Modifier){
+            selecteddate->datum=selecteddate
+        }
 
         Spacer(modifier=modifier.height(8.dp))
 
@@ -300,13 +302,16 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerDocked(modifier: Modifier=Modifier) {
+fun DatePickerDocked(modifier: Modifier=Modifier, selektovan :(String) -> Unit) {
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
     val selectedDate = datePickerState.selectedDateMillis?.let {
         convertMillisToDate(it)
     } ?: ""
 
+    if(selectedDate.isNotEmpty()){
+        selektovan(selectedDate)
+    }
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -373,6 +378,11 @@ fun PocetniEkran(navController: NavHostController){
         }
 
     }
+}
+
+@Composable
+fun PredstavaTroskova(modifier: Modifier){
+
 }
 
 
