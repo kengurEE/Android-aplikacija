@@ -47,10 +47,15 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.Popup
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -136,6 +141,10 @@ fun TruckManagementApp(bazaPodataka: BazaPodataka){
         composable("UnosTroskovaObicog"){
             Dugme("trosak",Modifier,navController,"Šleper", bazaPodataka)
         }
+        composable("PrikazTroskova/{tipKamiona}"){
+            backStackEntry->val tk = backStackEntry.arguments?.getString("tipKamiona")?:""
+            PredstavaTroskova(Modifier,bazaPodataka, tk)
+        }
     }
 }
 
@@ -174,13 +183,13 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
     )
 
     Column(modifier = modifier.padding(16.dp)){
-        Text(text="Unos troskova za $tipKamiona:")
+        Text(text="Unos troskova za $tipKamiona:",style = MaterialTheme.typography.displaySmall)
 
 
         OutlinedTextField(
             value = gorivo,
             onValueChange = {if(it.all { char -> char.isDigit() }) gorivo = it},
-            label = {Text(text = "Unesi $naziv za gorivo: ")},
+            label = {Text(text = "Unesi $naziv za gorivo(€): ")},
 
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
@@ -190,7 +199,7 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
         OutlinedTextField(
             value =odrzavanje,
             onValueChange = {if(it.all{char->char.isDigit()}) odrzavanje = it},
-            label = {Text(text = "Unesi $naziv za odrzavanje: ")},
+            label = {Text(text = "Unesi $naziv za odrzavanje(€): ")},
 
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
@@ -200,7 +209,7 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
         OutlinedTextField(
             value=putarina,
             onValueChange = {if(it.all{char ->char.isDigit()}) putarina = it},
-            label={Text(text = "Unesi $naziv za putarinu: ")},
+            label={Text(text = "Unesi $naziv za putarinu(€): ")},
 
             keyboardOptions =  KeyboardOptions(keyboardType = KeyboardType.Number)
         )
@@ -260,16 +269,14 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
 
             }
 
-        }){
-            Text(text="Dodaj troskove")
+        }) {
+            Text(text = "Dodaj troskove")
         }
-        Button(onClick = {
-            coroutineScope.launch(Dispatchers.IO) {
-                //bazaPodataka.dao().getUkupniTroskoviZaKamion(tipKamiona)
-                println("Ukupan trosak '${tipKamiona}':${bazaPodataka.dao().getUkupniTroskoviZaKamion(tipKamiona)}")
-            }
 
-        }) { Text(text="Ukupni troskovi za ${tipKamiona}")}
+        Button(onClick = {
+            navController.navigate("PrikazTroskova/$tipKamiona")
+
+        }) { Text(text="Prikaz troskova za $tipKamiona") }
 
         if(PorukaOGresci.isNotEmpty()){
             Text(
@@ -380,11 +387,111 @@ fun PocetniEkran(navController: NavHostController){
     }
 }
 
+@SuppressLint("NewApi")
 @Composable
-fun PredstavaTroskova(modifier: Modifier){
+fun PredstavaTroskova(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: String){
+    var trenutna_godina = LocalDate.now().year.toString()
+    val coroutineScope= rememberCoroutineScope()
+    var lista_troskova by remember { mutableStateOf<List<Ent>>(emptyList()) }
+    var ukupan_trosak by remember { mutableStateOf(0) }
+    //Decembar:
+    var gorivoDecembar by remember { mutableStateOf(0) }
+    var odrzavanjeDecembar by remember { mutableStateOf(0) }
+    var putarinaDecembar by remember { mutableStateOf(0) }
+    var Dukupno by remember { mutableStateOf(0) }
+    //Januar
+    var Jgorivo by remember { mutableStateOf(0) }
+    var Jodrzavanje by remember { mutableStateOf(0) }
+    var Jputarina by remember { mutableStateOf(0) }
+    var Jukupno by remember { mutableStateOf(0) }
+    //Februar
+    var Fgorivo by remember { mutableStateOf(0) }
+    var Fodrzavanje by remember { mutableStateOf(0) }
+    var Fputarina by remember { mutableStateOf(0) }
+    var Fukupno by remember { mutableStateOf(0) }
 
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            lista_troskova = bazaPodataka.dao().getTroskoviZaKamion(tipKamiona)
+        }
+    }
+
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            ukupan_trosak = bazaPodataka.dao().getUkupniTroskoviZaKamion(tipKamiona)
+        }
+    }
+    //Decembar
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            gorivoDecembar = bazaPodataka.dao().GorivoDecembar(tipKamiona)
+            odrzavanjeDecembar=bazaPodataka.dao().OdrzavanjeDecembar(tipKamiona,trenutna_godina)
+            putarinaDecembar=bazaPodataka.dao().PutarinaDecembar(tipKamiona)
+            Dukupno=bazaPodataka.dao().UkupnoDecembar(tipKamiona,trenutna_godina)
+        }
+    }
+
+    //Januar
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            Jgorivo = bazaPodataka.dao().JanuarGorivo(tipKamiona,trenutna_godina)
+            Jodrzavanje = bazaPodataka.dao().JanuarOdrzavanje(tipKamiona,trenutna_godina)
+            Jputarina = bazaPodataka.dao().JanuarPutarina(tipKamiona,trenutna_godina)
+            Jukupno = bazaPodataka.dao().JanuarUkupno(tipKamiona,trenutna_godina)
+        }
+    }
+    //Februar
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            Fgorivo = bazaPodataka.dao().FebruarGorivo(tipKamiona,trenutna_godina)
+            Fodrzavanje = bazaPodataka.dao().FebruarOdrzavanje(tipKamiona,trenutna_godina)
+            Fputarina = bazaPodataka.dao().FebruarPutarina(tipKamiona,trenutna_godina)
+            Fukupno = bazaPodataka.dao().FebruarUkupno(tipKamiona,trenutna_godina)
+        }
+    }
+
+
+
+    Column(modifier= Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())) {
+        Text(text = "Troškovi za: $tipKamiona", style = MaterialTheme.typography.displayMedium)
+
+        Spacer(modifier.height(8.dp))
+
+        lista_troskova.forEach {
+            Text(text="Gorivo:${it.Gorivo} | Odrzavanje:${it.Odrzavanje} | Putarina:${it.Putarina} | ${it.Datum}");
+        }
+        Spacer(modifier.height(16.dp))
+            Text(text="Ukupni troskovi:${ukupan_trosak}")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Jgorivo,Jodrzavanje,Jputarina,Jukupno,"Januar")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Fgorivo,Fodrzavanje,Fputarina,Fukupno,"Februar")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,gorivoDecembar,odrzavanjeDecembar,putarinaDecembar,Dukupno,"Decembar")
+
+
+    }
 }
 
+@Composable
+fun Ispis(godina:String,gorivo:Int, odrzavanje:Int,putarina:Int,ukupno:Int,mjesec:String){
+    Column {
+        Text(
+            text = "$mjesec $godina:",
+            fontWeight = FontWeight.Bold // Bold tekst za januar
+        )
+        Text(text = "  Gorivo: ${gorivo}€")
+        Text(text = "  Održavanje: ${odrzavanje}€")
+        Text(text = "  Putarina: ${putarina}€")
+        Text(
+            text = "Suma---------------$ukupno",
+            color = Color.Red // Zelena boja za sumu
+        )
+    }
+}
 
 
 
