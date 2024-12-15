@@ -45,17 +45,25 @@ import androidx.compose.material3.OutlinedTextField
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.motionEventSpy
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.fontResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -73,6 +81,7 @@ import com.example.truckmanagement.Data.Entitet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -368,22 +377,84 @@ fun convertMillisToDate(millis: Long): String {
 @Composable
 fun PocetniEkran(navController: NavHostController){
     Column(
-        modifier=Modifier.fillMaxSize().padding(16.dp)
+        modifier=Modifier.fillMaxSize().background(Color.Gray).padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ){
+
+        Image(
+            painter = painterResource(id = R.drawable.volvo_truck),
+            contentDescription = "Volvo Truck",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp) // Prilagodi visinu slike po potrebi
+                .clip(RoundedCornerShape(12.dp)), // Dodaje zaobljene uglove
+            contentScale = ContentScale.Crop // Podesi kako se slika skalira
+        )
+
+        //Spacer(modifier = Modifier.height(10.dp))
+
+        Text(text = "Welcome back Radovan Bjelanovic", style = MaterialTheme.typography.headlineSmall
+        , fontWeight = FontWeight.W200)
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth().height(150.dp).clickable { navController.navigate("UnosTroskovaHladnjace") },
+            shape = RoundedCornerShape(12.dp),
+            //elevation = 8.dp,
+            //backgroundColor = MaterialTheme.colors.primary
+
+        ){
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                /*
+                Icon(
+                painter = painterResource(id = R.drawable.ic_truck_cool), // Replace with your icon
+                contentDescription = "Hladnjača",
+                modifier = Modifier.size(64.dp),
+                tint = Color.White
+                )
+                */
+                Text(
+                    text = "Hladnjača",
+                    style = MaterialTheme.typography.displaySmall,
+                    color = Color.White
+                )
+            }
+        }
+        /*
         Button(onClick = {
             navController.navigate("UnosTroskovaHladnjace")
         }) {
             Text(text="Hladnjača")
         }
+        */
+       // Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth().height(150.dp).clickable { navController.navigate("UnosTroskovaObicog") },
+            shape = RoundedCornerShape(12.dp)
 
-        Button(onClick = {
-            navController.navigate("UnosTroskovaObicog")
-        }){
-            Text(text = "Šleper")
+        ){
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                Text(
+                    text = "Šleper",
+                    style = MaterialTheme.typography.displaySmall,
+                    color = Color.White)
+            }
         }
-
     }
 }
 
@@ -409,16 +480,58 @@ fun PredstavaTroskova(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona
     var Fodrzavanje by remember { mutableStateOf(0) }
     var Fputarina by remember { mutableStateOf(0) }
     var Fukupno by remember { mutableStateOf(0) }
+    //Mart
+    var Mgorivo by remember { mutableStateOf(0) }
+    var Modrzavanje by remember { mutableStateOf(0) }
+    var Mputarina by remember { mutableStateOf(0) }
+    var Mukupno by remember { mutableStateOf(0) }
+    //April
+    var Aprilgorivo by remember { mutableStateOf(0) }
+    var Aprilodrzavanje by remember { mutableStateOf(0) }
+    var Aprilputarina by remember { mutableStateOf(0) }
+    var Aprilukupno by remember { mutableStateOf(0) }
+    //Maj
+    var Majgorivo by remember { mutableStateOf(0) }
+    var Majodrzavanje by remember { mutableStateOf(0) }
+    var Majputarina by remember { mutableStateOf(0) }
+    var Majukupno by remember { mutableStateOf(0) }
+    //Jun
+    var Jungorivo by remember { mutableStateOf(0) }
+    var Junodrzavanje by remember { mutableStateOf(0) }
+    var Junputarina by remember { mutableStateOf(0) }
+    var Junukupno by remember { mutableStateOf(0) }
+    //Jul
+    var Julgorivo by remember { mutableStateOf(0) }
+    var Julodrzavanje by remember { mutableStateOf(0) }
+    var Julputarina by remember { mutableStateOf(0) }
+    var Julukupno by remember { mutableStateOf(0) }
+    //Avgust
+    var Avgustgorivo by remember { mutableStateOf(0) }
+    var Avgustodrzavanje by remember { mutableStateOf(0) }
+    var Avgustputarina by remember { mutableStateOf(0) }
+    var Avgustukupno by remember { mutableStateOf(0) }
+    //Septembar
+    var Septembargorivo by remember { mutableStateOf(0) }
+    var Septembarodrzavanje by remember { mutableStateOf(0) }
+    var Septembarputarina by remember { mutableStateOf(0) }
+    var Septembarukupno by remember { mutableStateOf(0) }
+    //Oktobar
+    var Oktobargorivo by remember { mutableStateOf(0) }
+    var Oktobarodrzavanje by remember { mutableStateOf(0) }
+    var Oktobarputarina by remember { mutableStateOf(0) }
+    var Oktobarukupno by remember { mutableStateOf(0) }
+    //Novembar
+    var Novembargorivo by remember { mutableStateOf(0) }
+    var Novembarodrzavanje by remember { mutableStateOf(0) }
+    var Novembarputarina by remember { mutableStateOf(0) }
+    var Novembarukupno by remember { mutableStateOf(0) }
+    var ukupni_troskovi_godina by remember { mutableStateOf(0) }
 
-    LaunchedEffect(tipKamiona) {
-        coroutineScope.launch(Dispatchers.IO) {
-            lista_troskova = bazaPodataka.dao().getTroskoviZaKamion(tipKamiona)
-        }
-    }
 
     LaunchedEffect(tipKamiona) {
         coroutineScope.launch(Dispatchers.IO) {
             ukupan_trosak = bazaPodataka.dao().getUkupniTroskoviZaKamion(tipKamiona)
+            ukupni_troskovi_godina = bazaPodataka.dao().UkupniTroskoviGodina(tipKamiona, trenutna_godina)
         }
     }
     //Decembar
@@ -449,25 +562,120 @@ fun PredstavaTroskova(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona
             Fukupno = bazaPodataka.dao().FebruarUkupno(tipKamiona,trenutna_godina)
         }
     }
+    //Mart
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            Mgorivo = bazaPodataka.dao().MartGorivo(tipKamiona,trenutna_godina)
+            Modrzavanje = bazaPodataka.dao().MartOdrzavanje(tipKamiona,trenutna_godina)
+            Mputarina = bazaPodataka.dao().MartPutarina(tipKamiona,trenutna_godina)
+            Mukupno = bazaPodataka.dao().MartUkupno(tipKamiona,trenutna_godina)
+        }
+    }
+    //April
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            Aprilgorivo = bazaPodataka.dao().AprilGorivo(tipKamiona,trenutna_godina)
+            Aprilodrzavanje = bazaPodataka.dao().Aprildrzavanje(tipKamiona,trenutna_godina)
+            Aprilputarina = bazaPodataka.dao().AprilPutarina(tipKamiona,trenutna_godina)
+            Aprilukupno = bazaPodataka.dao().AprilUkupno(tipKamiona,trenutna_godina)
+        }
+    }
+    //Maj
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            Majgorivo = bazaPodataka.dao().MajGorivo(tipKamiona,trenutna_godina)
+            Majodrzavanje = bazaPodataka.dao().Majdrzavanje(tipKamiona,trenutna_godina)
+            Majputarina = bazaPodataka.dao().MajPutarina(tipKamiona,trenutna_godina)
+            Majukupno = bazaPodataka.dao().MajUkupno(tipKamiona,trenutna_godina)
+        }
+    }
+    //Jun
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            Jungorivo = bazaPodataka.dao().JunGorivo(tipKamiona,trenutna_godina)
+            Junodrzavanje = bazaPodataka.dao().Jundrzavanje(tipKamiona,trenutna_godina)
+            Junputarina = bazaPodataka.dao().MajPutarina(tipKamiona,trenutna_godina)
+            Junukupno = bazaPodataka.dao().JunUkupno(tipKamiona,trenutna_godina)
+
+            //Jul
+            Julgorivo = bazaPodataka.dao().JulGorivo(tipKamiona,trenutna_godina)
+            Julodrzavanje = bazaPodataka.dao().Juldrzavanje(tipKamiona,trenutna_godina)
+            Julputarina = bazaPodataka.dao().JulPutarina(tipKamiona,trenutna_godina)
+            Julukupno = bazaPodataka.dao().JulUkupno(tipKamiona,trenutna_godina)
+
+            //Avgust
+            Avgustgorivo = bazaPodataka.dao().AvgustGorivo(tipKamiona,trenutna_godina)
+            Avgustodrzavanje = bazaPodataka.dao().Avgustdrzavanje(tipKamiona,trenutna_godina)
+            Avgustputarina = bazaPodataka.dao().AvgustPutarina(tipKamiona,trenutna_godina)
+            Avgustukupno = bazaPodataka.dao().AvgustUkupno(tipKamiona,trenutna_godina)
+
+            //Septembar
+            Septembargorivo = bazaPodataka.dao().SeptembarGorivo(tipKamiona,trenutna_godina)
+            Septembarodrzavanje = bazaPodataka.dao().Septembardrzavanje(tipKamiona,trenutna_godina)
+            Septembarputarina = bazaPodataka.dao().SeptembarPutarina(tipKamiona,trenutna_godina)
+            Septembarukupno = bazaPodataka.dao().SeptembarUkupno(tipKamiona,trenutna_godina)
+
+            //Oktobar
+            Oktobargorivo = bazaPodataka.dao().OktobarGorivo(tipKamiona,trenutna_godina)
+            Oktobarodrzavanje = bazaPodataka.dao().Oktobardrzavanje(tipKamiona,trenutna_godina)
+            Oktobarputarina = bazaPodataka.dao().OktobarPutarina(tipKamiona,trenutna_godina)
+            Oktobarukupno = bazaPodataka.dao().OktobarUkupno(tipKamiona,trenutna_godina)
+
+            //Novembar
+            Novembargorivo = bazaPodataka.dao().NovembarGorivo(tipKamiona,trenutna_godina)
+            Novembarodrzavanje = bazaPodataka.dao().Novembardrzavanje(tipKamiona,trenutna_godina)
+            Novembarputarina = bazaPodataka.dao().NovembarPutarina(tipKamiona,trenutna_godina)
+            Novembarukupno = bazaPodataka.dao().NovembarUkupno(tipKamiona,trenutna_godina)
+        }
+    }
 
 
 
     Column(modifier= Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())) {
-        Text(text = "Troškovi za: $tipKamiona", style = MaterialTheme.typography.displayMedium)
+        Text(text = "Troškovi za: $tipKamiona", style = MaterialTheme.typography.headlineMedium)
 
         Spacer(modifier.height(8.dp))
 
-        lista_troskova.forEach {
-            Text(text="Gorivo:${it.Gorivo} | Odrzavanje:${it.Odrzavanje} | Putarina:${it.Putarina} | ${it.Datum}");
-        }
         Spacer(modifier.height(16.dp))
             Text(text="Ukupni troskovi:${ukupan_trosak}")
+
+        Spacer(modifier.height(16.dp))
+        Text(text="Ukupni troskovi za $trenutna_godina:${ukupni_troskovi_godina}")
 
         Spacer(modifier.height(8.dp))
         Ispis(trenutna_godina,Jgorivo,Jodrzavanje,Jputarina,Jukupno,"Januar")
 
         Spacer(modifier.height(8.dp))
         Ispis(trenutna_godina,Fgorivo,Fodrzavanje,Fputarina,Fukupno,"Februar")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Mgorivo,Modrzavanje,Mputarina,Mukupno,"Mart")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Aprilgorivo,Aprilodrzavanje,Aprilputarina,Aprilukupno,"April")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Majgorivo,Majodrzavanje,Majputarina,Majukupno,"Maj")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Jungorivo,Junodrzavanje,Junputarina,Junukupno,"Jun")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Julgorivo,Julodrzavanje,Julputarina,Julukupno,"Jul")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Avgustgorivo,Avgustodrzavanje,Avgustputarina,Avgustukupno,"Avgust")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Septembargorivo,Septembarodrzavanje,Septembarputarina,Septembarukupno,"Septembar")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Oktobargorivo,Oktobarodrzavanje,Oktobarputarina,Oktobarukupno,"Oktobar")
+
+        Spacer(modifier.height(8.dp))
+        Ispis(trenutna_godina,Novembargorivo,Novembarodrzavanje,Novembarputarina,Novembarukupno,"Novembar")
+
+
 
         Spacer(modifier.height(8.dp))
         Ispis(trenutna_godina,gorivoDecembar,odrzavanjeDecembar,putarinaDecembar,Dukupno,"Decembar")
