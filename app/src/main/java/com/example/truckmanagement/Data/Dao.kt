@@ -20,7 +20,7 @@ interface Dao {
         @Query("SELECT * FROM entiteti WHERE TipKamiona = :tipKamiona")
         fun getTroskoviZaKamion(tipKamiona:String): List<Ent>
 
-        @Query("SELECT (SUM(Gorivo)+SUM(Putarina)+SUM(Odrzavanje)) FROM entiteti WHERE TipKamiona = :tipKamiona AND Datum LIKE '%/%/2024'")
+        @Query("SELECT (SUM(Gorivo)+SUM(Putarina)+SUM(Odrzavanje)) FROM entiteti WHERE TipKamiona = :tipKamiona")
         fun getUkupniTroskoviZaKamion(tipKamiona: String):Int
 
         @Query("SELECT (SUM(Gorivo)+SUM(Putarina)+SUM(Odrzavanje)) FROM entiteti WHERE TipKamiona = :tipKamiona AND Datum LIKE '%/%/' || :godina")

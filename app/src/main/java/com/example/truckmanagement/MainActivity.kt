@@ -55,6 +55,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.layout.ContentScale
@@ -192,8 +193,16 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
     )
 
     Column(modifier = modifier.padding(16.dp)){
-        Text(text="Unos troskova za $tipKamiona:",style = MaterialTheme.typography.displaySmall)
 
+        Spacer(modifier=modifier.height(40.dp))
+
+        Box(
+            modifier=Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ){
+        Text(text="Unos troškova za $tipKamiona:", style = MaterialTheme.typography.headlineSmall)
+        }
+        Spacer(modifier=modifier.height(60.dp))
 
         OutlinedTextField(
             value = gorivo,
@@ -239,8 +248,8 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
 
 
             if(gorivoInt==0 && odrzavanjeInt == 0 && putarinaInt==0) {
-                println("Greska! Nepotrebna akcija!\nUnesite barem jedan trosak.")
-                PorukaOGresci="Greska! Nepotrebna akcija!\nUnesite barem jedno polje."
+                println("Nepotrebna akcija!\nUnesite barem jedan trošak.")
+                PorukaOGresci="Nepotrebna akcija!\nUnesite barem jedan trošak."
 
             }else if(datum.isEmpty()){
                 PorukaOGresci="Morate unijeti datum!"
@@ -264,10 +273,8 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
                 }
                 coroutineScope.launch(Dispatchers.IO) {
                     lista_troskova = bazaPodataka.dao().getTroskoviZaKamion(tipKamiona)
-                    lista_troskova.forEach {
-                        println("Gorivo:${it.Gorivo} | Odrzavanje:${it.Odrzavanje} | Putarina:${it.Putarina} | Datum:${it.Datum} dadadadadaaddada")
-                    }
                 }
+
 
 
 
@@ -279,34 +286,43 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
             }
 
         }) {
-            Text(text = "Dodaj troskove")
+            Box(
+
+                contentAlignment = Alignment.Center
+            ){
+            Text(text = "Dodaj troškove",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black)
+            }
         }
 
-        Button(onClick = {
-            navController.navigate("PrikazTroskova/$tipKamiona")
+        Spacer(modifier = modifier.height(10.dp))
 
-        }) { Text(text="Prikaz troskova za $tipKamiona") }
+        Card(
+            modifier = Modifier.fillMaxWidth().height(50.dp).clickable { navController.navigate("PrikazTroskova/$tipKamiona") },
+            shape = RoundedCornerShape(12.dp)
+
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Prikaz troškova za $tipKamiona",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Black
+                )
+            }
+        }
 
         if(PorukaOGresci.isNotEmpty()){
             Text(
                 text = PorukaOGresci,
                 color = MaterialTheme.colorScheme.error
             )
-        }else {
-            Text(text = "Gorivo:${gorivoInt} | Odrzavanje:${odrzavanjeInt} | Putarina:${putarinaInt} | Datum: ${datum} za kamion tipa ${tipKamiona}")
-
-
-/*
-                        LaunchedEffect(tipKamiona) {
-                         CoroutineScope(Dispatchers.IO).launch {
-                                lista_troskova = bazaPodataka.dao().getTroskoviZaKamion(tipKamiona)
-                            }
-                        }
-                        */
-
-
-
-
         }
 
     }
@@ -377,11 +393,11 @@ fun convertMillisToDate(millis: Long): String {
 @Composable
 fun PocetniEkran(navController: NavHostController){
     Column(
-        modifier=Modifier.fillMaxSize().background(Color.Gray).padding(24.dp),
+        modifier=Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-
+    Spacer(modifier = Modifier.height(32.dp))
         Image(
             painter = painterResource(id = R.drawable.volvo_truck),
             contentDescription = "Volvo Truck",
@@ -394,10 +410,10 @@ fun PocetniEkran(navController: NavHostController){
 
         //Spacer(modifier = Modifier.height(10.dp))
 
-        Text(text = "Welcome back Radovan Bjelanovic", style = MaterialTheme.typography.headlineSmall
+        Text(text = "Welcome back Radovan Bjelanovic", style = MaterialTheme.typography.bodyLarge
         , fontWeight = FontWeight.W200)
 
-        Spacer(modifier = Modifier.height(32.dp))
+        //Spacer(modifier = Modifier.height(10.dp))
 
         Card(
             modifier = Modifier.fillMaxWidth().height(150.dp).clickable { navController.navigate("UnosTroskovaHladnjace") },
@@ -424,7 +440,7 @@ fun PocetniEkran(navController: NavHostController){
                 Text(
                     text = "Hladnjača",
                     style = MaterialTheme.typography.displaySmall,
-                    color = Color.White
+                    color = Color.Black
                 )
             }
         }
@@ -452,7 +468,7 @@ fun PocetniEkran(navController: NavHostController){
                 Text(
                     text = "Šleper",
                     style = MaterialTheme.typography.displaySmall,
-                    color = Color.White)
+                    color = Color.Black)
             }
         }
     }
@@ -594,7 +610,7 @@ fun PredstavaTroskova(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona
         coroutineScope.launch(Dispatchers.IO) {
             Jungorivo = bazaPodataka.dao().JunGorivo(tipKamiona,trenutna_godina)
             Junodrzavanje = bazaPodataka.dao().Jundrzavanje(tipKamiona,trenutna_godina)
-            Junputarina = bazaPodataka.dao().MajPutarina(tipKamiona,trenutna_godina)
+            Junputarina = bazaPodataka.dao().JunPutarina(tipKamiona,trenutna_godina)
             Junukupno = bazaPodataka.dao().JunUkupno(tipKamiona,trenutna_godina)
 
             //Jul
@@ -631,18 +647,26 @@ fun PredstavaTroskova(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona
 
 
 
-    Column(modifier= Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState())) {
-        Text(text = "Troškovi za: $tipKamiona", style = MaterialTheme.typography.headlineMedium)
+    Column(modifier= Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()))
+    {
+
+        Spacer(modifier.height(32.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize(), // Ispuni ceo ekran
+            contentAlignment = Alignment.Center // Poravnaj sadržaj u centru Box-a
+        ) {
+            Text(text ="$tipKamiona:", style = MaterialTheme.typography.displaySmall)
+        }
+
+        Spacer(modifier.height(32.dp))
+            Text(text="Ukupan trošak: ${ukupan_trosak}€")
 
         Spacer(modifier.height(8.dp))
+        Text(text="Ukupan trošak za $trenutna_godina godinu: ${ukupni_troskovi_godina}€")
 
         Spacer(modifier.height(16.dp))
-            Text(text="Ukupni troskovi:${ukupan_trosak}")
-
-        Spacer(modifier.height(16.dp))
-        Text(text="Ukupni troskovi za $trenutna_godina:${ukupni_troskovi_godina}")
-
-        Spacer(modifier.height(8.dp))
         Ispis(trenutna_godina,Jgorivo,Jodrzavanje,Jputarina,Jukupno,"Januar")
 
         Spacer(modifier.height(8.dp))
@@ -695,7 +719,7 @@ fun Ispis(godina:String,gorivo:Int, odrzavanje:Int,putarina:Int,ukupno:Int,mjese
         Text(text = "  Održavanje: ${odrzavanje}€")
         Text(text = "  Putarina: ${putarina}€")
         Text(
-            text = "Suma---------------$ukupno",
+            text = "  Suma---------------$ukupno€",
             color = Color.Red // Zelena boja za sumu
         )
     }
