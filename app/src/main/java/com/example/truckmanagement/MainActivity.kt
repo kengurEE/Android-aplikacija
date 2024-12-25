@@ -72,6 +72,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.room.Entity
 import androidx.room.Room
+import androidx.room.util.TableInfo
 import com.example.truckmanagement.Data.BazaPodataka
 import com.example.truckmanagement.Data.BazaPodataka_Impl
 import com.example.truckmanagement.Data.Ent
@@ -155,6 +156,11 @@ fun TruckManagementApp(bazaPodataka: BazaPodataka){
             backStackEntry->val tk = backStackEntry.arguments?.getString("tipKamiona")?:""
             PredstavaTroskova(Modifier,bazaPodataka, tk)
         }
+        composable("PrikazTroskovaBrisanje/{tipKamiona}"){
+            backStackEntry->val tip = backStackEntry.arguments?.getString("tipKamiona")?:""
+            ListaTroskovaZaBrisanje(bazaPodataka,tip)
+        }
+
     }
 }
 
@@ -292,7 +298,7 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
             ){
             Text(text = "Dodaj troškove",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Black)
+                color = Color.White)
             }
         }
 
@@ -317,6 +323,25 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
                 )
             }
         }
+
+        Spacer(modifier = modifier.height(10.dp))
+
+        Card(
+            modifier=Modifier.fillMaxWidth().clickable { navController.navigate("PrikazTroskovaBrisanje/${tipKamiona}") },
+            shape= RoundedCornerShape(12.dp)
+        ){
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ){
+                Text(text="Lista troškova za brisanje", style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+
+        
+
+
 
         if(PorukaOGresci.isNotEmpty()){
             Text(
@@ -723,6 +748,35 @@ fun Ispis(godina:String,gorivo:Int, odrzavanje:Int,putarina:Int,ukupno:Int,mjese
             color = Color.Red // Zelena boja za sumu
         )
     }
+}
+
+@Composable
+fun ListaTroskovaZaBrisanje(bazaPodataka: BazaPodataka, tipKamiona: String){
+    val coroutineScope= rememberCoroutineScope()
+    var lista by remember { mutableStateOf<List<Ent>>(emptyList()) }
+
+
+    LaunchedEffect(tipKamiona) {
+        coroutineScope.launch(Dispatchers.IO) {
+            lista = bazaPodataka.dao().getTroskoviZaKamion(tipKamiona)
+        }
+    }
+        Column(Modifier.fillMaxWidth().padding(32.dp).verticalScroll(rememberScrollState())) {
+            lista.forEach {
+                Text(text="Id:${it.id}\n  Gorivo=${it.Gorivo}€\n  Održavanje=${it.Odrzavanje}€\n  Putarina=${it.Putarina}€     Datum:${it.Datum}")
+                Card(
+                    modifier = Modifier.fillMaxSize().clickable {  }
+                ){
+                    Row(
+
+                    ){
+                        Text(text="Obrisi")
+                    }
+                }
+                Text(text="\n")
+
+            }
+        }
 }
 
 
