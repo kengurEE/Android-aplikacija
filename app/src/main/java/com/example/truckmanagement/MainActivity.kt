@@ -53,6 +53,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.focusModifier
@@ -88,6 +89,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -181,7 +183,7 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
     var odrzavanje by remember { mutableStateOf("") }
     var putarina by remember { mutableStateOf("") }
     var datum by remember { mutableStateOf("") }
-    var PorukaOGresci by remember { mutableStateOf("") }
+    var PorukaOGresci by remember { mutableStateOf("puna") }
     var lista_troskova by remember { mutableStateOf<List<Ent>>(emptyList()) }
     var ukupan_trosak by remember { mutableStateOf(Int) }
     val coroutineScope= rememberCoroutineScope()
@@ -249,9 +251,15 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
         val gorivoInt = if(gorivo.isNotEmpty()) gorivo.toInt() else 0
         val odrzavanjeInt = if(odrzavanje.isNotEmpty()) odrzavanje.toInt() else 0
         val putarinaInt = if(putarina.isNotEmpty()) putarina.toInt() else 0
+
+        var datum_LocalDate by remember { mutableStateOf(LocalDate.now()) }
+
         Button(onClick = {
 
-
+            if(datum.isNotEmpty()) {
+                 datum_LocalDate = LocalDate.parse(datum, DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                    // uvijek koristiti LocalDate za rad sa poredjenjem datuma
+            }
 
             if(gorivoInt==0 && odrzavanjeInt == 0 && putarinaInt==0) {
                 println("Nepotrebna akcija!\nUnesite barem jedan trošak.")
@@ -260,10 +268,11 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
             }else if(datum.isEmpty()){
                 PorukaOGresci="Morate unijeti datum!"
 
-
+            }else if(datum_LocalDate>LocalDate.now()){
+                PorukaOGresci="Unesite validan datum!"
             }
             else{
-                println("Gorivo: $gorivoInt, Odrzavanje: $odrzavanjeInt, Putarina: $putarinaInt")
+
                 PorukaOGresci=""
 
                     val noviTrosak = Ent(
@@ -277,18 +286,6 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
                 coroutineScope.launch(Dispatchers.IO) {
                     bazaPodataka.dao().insertTrosak(noviTrosak)
                 }
-                coroutineScope.launch(Dispatchers.IO) {
-                    lista_troskova = bazaPodataka.dao().getTroskoviZaKamion(tipKamiona)
-                }
-
-
-
-
-
-
-
-
-
             }
 
         }) {
@@ -335,19 +332,25 @@ fun Dugme(naziv: String, modifier: Modifier = Modifier, navController: NavHostCo
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ){
-                Text(text="Lista troškova za brisanje", style = MaterialTheme.typography.bodyMedium)
+                Text(text="Lista troškova za ${tipKamiona}", style = MaterialTheme.typography.bodyMedium, color = Color.Black
+                )
             }
         }
 
-        
 
 
 
-        if(PorukaOGresci.isNotEmpty()){
+
+        if(PorukaOGresci.isNotEmpty() && PorukaOGresci!="puna"){
             Text(
                 text = PorukaOGresci,
                 color = MaterialTheme.colorScheme.error
             )
+        }else if(PorukaOGresci.isEmpty()){
+            Text(
+                text = "Uspješan unos!",
+                color = Color.Green
+                )
         }
 
     }
@@ -409,7 +412,7 @@ fun DatePickerDocked(modifier: Modifier=Modifier, selektovan :(String) -> Unit) 
 }
 
 fun convertMillisToDate(millis: Long): String {
-    val formatter = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     return formatter.format(Date(millis))
 }
 
@@ -578,9 +581,9 @@ fun PredstavaTroskova(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona
     //Decembar
     LaunchedEffect(tipKamiona) {
         coroutineScope.launch(Dispatchers.IO) {
-            gorivoDecembar = bazaPodataka.dao().GorivoDecembar(tipKamiona)
+            gorivoDecembar = bazaPodataka.dao().GorivoDecembar(tipKamiona, trenutna_godina)
             odrzavanjeDecembar=bazaPodataka.dao().OdrzavanjeDecembar(tipKamiona,trenutna_godina)
-            putarinaDecembar=bazaPodataka.dao().PutarinaDecembar(tipKamiona)
+            putarinaDecembar=bazaPodataka.dao().PutarinaDecembar(tipKamiona, trenutna_godina)
             Dukupno=bazaPodataka.dao().UkupnoDecembar(tipKamiona,trenutna_godina)
         }
     }
@@ -764,8 +767,14 @@ fun ListaTroskovaZaBrisanje(bazaPodataka: BazaPodataka, tipKamiona: String){
         Column(Modifier.fillMaxWidth().padding(32.dp).verticalScroll(rememberScrollState())) {
             lista.forEach {
                 Text(text="Id:${it.id}\n  Gorivo=${it.Gorivo}€\n  Održavanje=${it.Odrzavanje}€\n  Putarina=${it.Putarina}€     Datum:${it.Datum}")
+                val entitet = Ent(TipKamiona = it.TipKamiona, Gorivo = it.Gorivo, Odrzavanje = it.Odrzavanje, Putarina = it.Putarina, Datum=it.Datum, id=it.id)
                 Card(
-                    modifier = Modifier.fillMaxSize().clickable {  }
+                    modifier = Modifier.fillMaxSize().clickable {
+                        coroutineScope.launch(Dispatchers.IO) {
+                            bazaPodataka.dao().deleteTrosak(entitet)
+                            lista = bazaPodataka.dao().getTroskoviZaKamion(tipKamiona)
+                        } }
+
                 ){
                     Row(
 
