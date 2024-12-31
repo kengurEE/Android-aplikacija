@@ -17,5 +17,7 @@ data class Ent2(
     val Usluge_Prevoza_ZaIz : String,
     val Vrsta_Robe : String,
     val Teret_Robe_Kg : Int,
+    var Zavrsi : Boolean,
+    var Km_Istovar : Int = 0,
     @PrimaryKey(autoGenerate = true) var id: Int = 0
 )

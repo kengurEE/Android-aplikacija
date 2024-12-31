@@ -186,6 +186,10 @@ fun TruckManagementApp(bazaPodataka: BazaPodataka){
             backStackEntry->val tip = backStackEntry.arguments?.getString("tipKamiona")?:""
             Rute(Modifier,bazaPodataka,tip,navController)
         }
+        composable("PregledRuta/{tipKamiona}"){
+            kamion -> val tip = kamion.arguments?.getString("tipKamiona")?:""
+            PregledRuta(Modifier,bazaPodataka,tip)
+        }
 
 
 
@@ -204,7 +208,10 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun NavigacioniEkran(bazaPodataka: BazaPodataka, tipKamiona: String, navController: NavHostController){
-    Column(Modifier.fillMaxSize().padding(30.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(30.dp)) {
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
@@ -213,7 +220,10 @@ fun NavigacioniEkran(bazaPodataka: BazaPodataka, tipKamiona: String, navControll
         }
         Spacer(Modifier.height(10.dp))
         Card(
-            modifier = Modifier.fillMaxWidth().height(50.dp).clickable { navController.navigate("Rute/$tipKamiona") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .clickable { navController.navigate("Rute/$tipKamiona") },
             shape = RoundedCornerShape(12.dp)
         ) {
             Row(
@@ -232,7 +242,10 @@ fun NavigacioniEkran(bazaPodataka: BazaPodataka, tipKamiona: String, navControll
         }
         Spacer(Modifier.height(10.dp))
         Card(
-            modifier = Modifier.fillMaxWidth().height(50.dp).clickable { navController.navigate("DodajTransport/$tipKamiona") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .clickable { navController.navigate("DodajTransport/$tipKamiona") },
             shape = RoundedCornerShape(12.dp)
 
         ) {
@@ -252,7 +265,10 @@ fun NavigacioniEkran(bazaPodataka: BazaPodataka, tipKamiona: String, navControll
         }
         Spacer(Modifier.height(10.dp))
         Card(
-            modifier = Modifier.fillMaxWidth().height(50.dp).clickable { navController.navigate("PregledRuta/$tipKamiona") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .clickable { navController.navigate("PregledRuta/$tipKamiona") },
             shape = RoundedCornerShape(12.dp)
 
         ) {
@@ -293,7 +309,10 @@ fun DodajTransport(modifier: Modifier,bazaPodataka: BazaPodataka, tipKamiona: St
 
 
 
-Column(modifier = Modifier.fillMaxSize().padding(20.dp).verticalScroll(rememberScrollState())) {
+Column(modifier = Modifier
+    .fillMaxSize()
+    .padding(20.dp)
+    .verticalScroll(rememberScrollState())) {
 Card(
     modifier = Modifier.padding(10.dp),
     colors = CardDefaults.cardColors(
@@ -354,7 +373,9 @@ Card(
 
 
 Card(
-    modifier = Modifier.fillMaxWidth().padding(8.dp),
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp),
     colors = CardDefaults.cardColors(
         containerColor = Color.White // Postavljanje pozadine na belu
     )
@@ -406,44 +427,54 @@ Card(
 }
 
 Card(
-    modifier = Modifier.fillMaxWidth().padding(8.dp).clickable {
-        if (mjesto_polaska.isNotEmpty() && km_polaska.isNotEmpty() &&
-            datum_utovara.isNotEmpty() && mjesto_utovara.isNotEmpty() &&
-            km_utovara.isNotEmpty() && vrsta_robe.isNotEmpty() && teret_robe_kg.isNotEmpty() &&
-            usluge_prevoza.isNotEmpty() && mjesto_istovara.isNotEmpty()
-        ) {
-            porukagreske = ""
+    modifier = Modifier
+        .fillMaxWidth()
+        .padding(8.dp)
+        .clickable {
+            if (mjesto_polaska.isNotEmpty() && km_polaska.isNotEmpty() &&
+                datum_utovara.isNotEmpty() && mjesto_utovara.isNotEmpty() &&
+                km_utovara.isNotEmpty() && vrsta_robe.isNotEmpty() && teret_robe_kg.isNotEmpty() &&
+                usluge_prevoza.isNotEmpty() && mjesto_istovara.isNotEmpty()
+            ) {
+                porukagreske = ""
 
-            val Transport = Ent2(
-                TipKamiona = tipKamiona,
-                Mjesto_Istovara = mjesto_istovara,
-                Mjesto_Utovara = mjesto_utovara,
-                Km_Utovar = km_utovara.toInt(),
-                Km_Polaska = km_polaska.toInt(),
-                Usluge_Prevoza_ZaIz = usluge_prevoza,
-                Vrsta_Robe = vrsta_robe,
-                Teret_Robe_Kg = teret_robe_kg.toInt(),
-                Datum_Utovara = datum_utovara,
-                Mjesto_Polaska = mjesto_polaska
-            )
+                val Transport = Ent2(
+                    TipKamiona = tipKamiona,
+                    Mjesto_Istovara = mjesto_istovara,
+                    Mjesto_Utovara = mjesto_utovara,
+                    Km_Utovar = km_utovara.toInt(),
+                    Km_Polaska = km_polaska.toInt(),
+                    Usluge_Prevoza_ZaIz = usluge_prevoza,
+                    Vrsta_Robe = vrsta_robe,
+                    Teret_Robe_Kg = teret_robe_kg.toInt(),
+                    Datum_Utovara = datum_utovara,
+                    Mjesto_Polaska = mjesto_polaska,
+                    Zavrsi = false
+                )
 
-            coroutineScope.launch(Dispatchers.IO) {
-                bazaPodataka.dao2transport().InsertTransport(Transport)
+                coroutineScope.launch(Dispatchers.IO) {
+                    bazaPodataka
+                        .dao2transport()
+                        .InsertTransport(Transport)
+                }
+                coroutineScope.launch(Dispatchers.IO) {
+                    lista = bazaPodataka
+                        .dao2transport()
+                        .TransportPodaci(tipKamiona)
+                }
+                lista.forEach {
+                    println(
+                        "Mjesto polaska:${it.Mjesto_Polaska}   Kilometraza polaska:${it.Km_Polaska}\\n\" +\n" +
+                                "                        \"Mjesto utovara:${it.Mjesto_Utovara}   Kilometraza na utovaru:${it.Km_Utovar}\\n\" +\n" +
+                                "                        \"Usluge prevoza:${it.Usluge_Prevoza_ZaIz}\\n\" +\n" +
+                                "                        \"Vrsta robe:${it.Vrsta_Robe}   Teret u kg:${it.Teret_Robe_Kg}\\n\" +\n" +
+                                "                        \"Datum:${it.Datum_Utovara}   Mjesto istovara:${it.Mjesto_Istovara}\""
+                    )
+                }
+            } else {
+                porukagreske = "Popunite svako polje!"
             }
-            coroutineScope.launch(Dispatchers.IO) {
-                lista = bazaPodataka.dao2transport().TransportPodaci(tipKamiona)
-            }
-            lista.forEach {
-            println("Mjesto polaska:${it.Mjesto_Polaska}   Kilometraza polaska:${it.Km_Polaska}\\n\" +\n" +
-                    "                        \"Mjesto utovara:${it.Mjesto_Utovara}   Kilometraza na utovaru:${it.Km_Utovar}\\n\" +\n" +
-                    "                        \"Usluge prevoza:${it.Usluge_Prevoza_ZaIz}\\n\" +\n" +
-                    "                        \"Vrsta robe:${it.Vrsta_Robe}   Teret u kg:${it.Teret_Robe_Kg}\\n\" +\n" +
-                    "                        \"Datum:${it.Datum_Utovara}   Mjesto istovara:${it.Mjesto_Istovara}\"")
-            }
-        } else {
-            porukagreske = "Popunite svako polje!"
         }
-    }
 ) {
     Row(
 
@@ -465,6 +496,8 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
     var lista by remember { mutableStateOf<List<Ent2>>(emptyList()) }
     val coroutineScope= rememberCoroutineScope()
     var StringZaNavigaciju by remember { mutableStateOf("") }
+    var kliknutoZavrsi by remember { mutableStateOf(false) }
+    var Km_izlazna by remember { mutableStateOf("") }
 
     LaunchedEffect(tipKamiona) {
         coroutineScope.launch(Dispatchers.IO) {
@@ -472,7 +505,7 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
         }
     }
 
-    if(tipKamiona == "Truck: BD-BP688"){
+    if(tipKamiona == "Truck BD-BP688"){
         StringZaNavigaciju = "NavigacijaBD-BP688_truck"
     }else if(tipKamiona == "Truck: BD-BV257"){
         StringZaNavigaciju = "NavigacijaBD-BV257_truck"
@@ -480,7 +513,9 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
         StringZaNavigaciju="home"
     }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(16.dp)) {
             lista.forEach {
                 Text(text = "${tipKamiona}\n")
                 Box(
@@ -495,8 +530,11 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
                                 "Kilometraza na utovaru: ${it.Km_Utovar}"
                     )
                 }
+
                 Card(
-                    modifier = Modifier.fillMaxWidth().clickable { navController.navigate("Dugme/$tipKamiona/${it.id}") }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navController.navigate("Dugme/$tipKamiona/${it.id}") }
                 ) {
                     Box(
                         modifier=Modifier.fillMaxWidth(),
@@ -505,21 +543,103 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
                         Text(text = "Dodaj troškove")
                     }
                 }
+
                 Card(
-                    modifier = Modifier.fillMaxWidth().clickable { navController.navigate(StringZaNavigaciju) }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            it.Zavrsi = true
+                            kliknutoZavrsi = true
+                        }
                 ) {
                     Box(
                         modifier=Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "Vrati se na Navigaciju")
+                        Text(text = "Kraj transporta")
                     }
                 }
+                if(kliknutoZavrsi==true) {
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp).clickable{}
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = "Unesite kilometrazu na istovaru:",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                            TextField(
+                                value = Km_izlazna,
+                                onValueChange = {izlazna->if(izlazna.all(){it.isDigit()}) Km_izlazna=izlazna},
+                                label = { Text("Tekst polje") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+
+
+
+
+
 
                 Text(text = "\n")
             }
 
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Black)
+                .clickable { navController.navigate(StringZaNavigaciju) }
+        ) {
+            Box(
+                modifier=Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Vrati se na Navigaciju", color = Color.White)
+            }
+        }
+
+
+
+
     }
+
+
+}
+
+@Composable
+fun PregledRuta(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: String){
+    val courutineScope = rememberCoroutineScope()
+    var lista_zavrsenih_ruta by remember { mutableStateOf<List<Ent2>>(emptyList()) }
+
+    LaunchedEffect(tipKamiona) {
+        courutineScope.launch(Dispatchers.IO) {
+            lista_zavrsenih_ruta = bazaPodataka.dao2transport().ZavrsenTransport(tipKamiona)
+        }
+    }
+
+    Column {
+        lista_zavrsenih_ruta.forEach {
+            Text(
+                text = "Mjesto utovara-istovaraa: ${it.Mjesto_Utovara} - ${it.Mjesto_Istovara}\n" +
+                        "Usluge prevoza: ${it.Usluge_Prevoza_ZaIz}\n" +
+                        "Datum: ${it.Datum_Utovara}\n"+
+                        "Vrsta robe: ${it.Vrsta_Robe}\n" +
+                        "Kilometraza na utovaru: ${it.Km_Utovar}\n" +
+                        "Kilometraza na istovaru:"
+            )
+        }
+    }
+
 
 
 }
@@ -641,7 +761,10 @@ val coroutineScope= rememberCoroutineScope()
         Spacer(modifier = modifier.height(10.dp))
 
         Card(
-            modifier = Modifier.fillMaxWidth().height(50.dp).clickable { navController.navigate("PrikazTroskova/$tipKamiona") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .clickable { navController.navigate("PrikazTroskova/$tipKamiona") },
             shape = RoundedCornerShape(12.dp)
 
         ) {
@@ -663,11 +786,15 @@ val coroutineScope= rememberCoroutineScope()
         Spacer(modifier = modifier.height(10.dp))
 
         Card(
-            modifier=Modifier.fillMaxWidth().clickable { navController.navigate("PrikazTroskovaBrisanje/${tipKamiona}/${iD}") },
+            modifier= Modifier
+                .fillMaxWidth()
+                .clickable { navController.navigate("PrikazTroskovaBrisanje/${tipKamiona}/${iD}") },
             shape= RoundedCornerShape(12.dp)
         ){
             Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ){
@@ -723,7 +850,9 @@ modifier = Modifier.fillMaxWidth()
                 contentDescription = "Unesi datum")
         }
         },
-        modifier = Modifier.fillMaxWidth().height(64.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
     )
 
 
@@ -760,7 +889,9 @@ return formatter.format(Date(millis))
 @Composable
 fun PocetniEkran(navController: NavHostController){
 Column(
-modifier=Modifier.fillMaxSize().padding(24.dp),
+modifier= Modifier
+    .fillMaxSize()
+    .padding(24.dp),
 verticalArrangement = Arrangement.spacedBy(16.dp),
 horizontalAlignment = Alignment.CenterHorizontally
 ){
@@ -783,7 +914,10 @@ Text(text = "Welcome back Radovan Bjelanovic", style = MaterialTheme.typography.
 //Spacer(modifier = Modifier.height(10.dp))
 
 Card(
-    modifier = Modifier.fillMaxWidth().height(150.dp).clickable { navController.navigate("NavigacijaBD-BP688_truck") },
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(150.dp)
+        .clickable { navController.navigate("NavigacijaBD-BP688_truck") },
     shape = RoundedCornerShape(12.dp),
     //elevation = 8.dp,
     //backgroundColor = MaterialTheme.colors.primary
@@ -821,7 +955,10 @@ Button(onClick = {
 // Spacer(modifier = Modifier.height(16.dp))
 
 Card(
-    modifier = Modifier.fillMaxWidth().height(150.dp).clickable { navController.navigate("NavigacijaBD-BV257_truck") },
+    modifier = Modifier
+        .fillMaxWidth()
+        .height(150.dp)
+        .clickable { navController.navigate("NavigacijaBD-BV257_truck") },
     shape = RoundedCornerShape(12.dp)
 
 ){
@@ -1014,7 +1151,10 @@ coroutineScope.launch(Dispatchers.IO) {
 
 
 
-Column(modifier= Modifier.fillMaxSize().padding(16.dp).verticalScroll(rememberScrollState()))
+Column(modifier= Modifier
+    .fillMaxSize()
+    .padding(16.dp)
+    .verticalScroll(rememberScrollState()))
 {
 
 Spacer(modifier.height(32.dp))
@@ -1103,16 +1243,27 @@ coroutineScope.launch(Dispatchers.IO) {
     lista = bazaPodataka.dao().getTroskoviZaKamion(tipKamiona, iD)
 }
 }
-Column(Modifier.fillMaxWidth().padding(32.dp).verticalScroll(rememberScrollState())) {
+Column(
+    Modifier
+        .fillMaxWidth()
+        .padding(32.dp)
+        .verticalScroll(rememberScrollState())) {
     lista.forEach {
         Text(text="Id_transporta:${it.Id_Transporta}, Id:${it.id_troskova}\n  Gorivo=${it.Gorivo}€\n  Održavanje=${it.Odrzavanje}€\n  Putarina=${it.Putarina}€     Datum:${it.Datum}")
         val entitet = Ent(TipKamiona = it.TipKamiona, Gorivo = it.Gorivo, Odrzavanje = it.Odrzavanje, Putarina = it.Putarina, Datum=it.Datum, id_troskova =it.id_troskova, Id_Transporta = it.Id_Transporta)
         Card(
-            modifier = Modifier.fillMaxSize().clickable {
-                coroutineScope.launch(Dispatchers.IO) {
-                    bazaPodataka.dao().deleteTrosak(entitet)
-                    lista = bazaPodataka.dao().getTroskoviZaKamion(tipKamiona,iD)
-                } }
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        bazaPodataka
+                            .dao()
+                            .deleteTrosak(entitet)
+                        lista = bazaPodataka
+                            .dao()
+                            .getTroskoviZaKamion(tipKamiona, iD)
+                    }
+                }
 
         ){
             Row(
