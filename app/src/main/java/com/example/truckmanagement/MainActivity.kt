@@ -295,6 +295,7 @@ fun DodajTransport(modifier: Modifier,bazaPodataka: BazaPodataka, tipKamiona: St
     var mjesto_utovara by remember{ mutableStateOf("") }
     var mjesto_polaska by remember{ mutableStateOf("") }
     var datum_utovara by remember{ mutableStateOf("") }
+    var datum_polaska by remember{ mutableStateOf("") }
     var km_utovara by remember{ mutableStateOf("") }
     var km_polaska by remember{ mutableStateOf("") }
     var usluge_prevoza by remember { mutableStateOf("") }
@@ -365,7 +366,7 @@ Card(
     )
     {
         DatePickerDocked(modifier = Modifier) { selektovan ->
-            datum_utovara = selektovan
+            datum_polaska = selektovan
         }
 
     }
@@ -423,6 +424,11 @@ Card(
         onValueChange = { u -> mjesto_istovara = u },
         label = { Text(text = "Mjesto istovara") }
     )
+    Spacer(modifier = Modifier.height(10.dp))
+    DatePickerDocked(modifier = Modifier) { selektovan ->
+        datum_utovara = selektovan
+    }
+
 
 }
 
@@ -432,7 +438,7 @@ Card(
         .padding(8.dp)
         .clickable {
             if (mjesto_polaska.isNotEmpty() && km_polaska.isNotEmpty() &&
-                datum_utovara.isNotEmpty() && mjesto_utovara.isNotEmpty() &&
+                datum_polaska.isNotEmpty() && mjesto_utovara.isNotEmpty() &&
                 km_utovara.isNotEmpty() && vrsta_robe.isNotEmpty() && teret_robe_kg.isNotEmpty() &&
                 usluge_prevoza.isNotEmpty() && mjesto_istovara.isNotEmpty()
             ) {
@@ -447,9 +453,10 @@ Card(
                     Usluge_Prevoza_ZaIz = usluge_prevoza,
                     Vrsta_Robe = vrsta_robe,
                     Teret_Robe_Kg = teret_robe_kg.toInt(),
-                    Datum_Utovara = datum_utovara,
+                    Datum_Polaska = datum_polaska,
                     Mjesto_Polaska = mjesto_polaska,
-                    Zavrsi = false
+                    Zavrsi = false,
+                    Datum_Utovara = datum_utovara
                 )
 
                 coroutineScope.launch(Dispatchers.IO) {
@@ -515,9 +522,9 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
 
     Column(modifier = Modifier
         .fillMaxWidth()
-        .padding(16.dp)) {
+        .padding(20.dp)) {
             lista.forEach {
-                Text(text = "${tipKamiona}\n")
+                Spacer(modifier.height(10.dp))
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
@@ -527,7 +534,9 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
                                 "Datum: ${it.Datum_Utovara}\n" +
                                 "Usluge prevoza: ${it.Usluge_Prevoza_ZaIz}\n" +
                                 "Vrsta robe: ${it.Vrsta_Robe}\n" +
-                                "Kilometraza na utovaru: ${it.Km_Utovar}"
+                                "Kilometraza na utovaru: ${it.Km_Utovar}\n" +
+                                "Kraj:${it.Zavrsi}\n" +
+                                "Kilometraza na izlazu:${it.Km_Istovar}"
                     )
                 }
 
@@ -560,11 +569,15 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
                     }
                 }
                 if(kliknutoZavrsi==true) {
-
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp).clickable{}
+                            .padding(16.dp).clickable{
+                                it.Km_Istovar=Km_izlazna.toInt()
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    bazaPodataka.dao2transport().update(it)
+                                }
+                            }
                     ) {
                         Column(
                             modifier = Modifier
@@ -578,7 +591,7 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
                             )
                             TextField(
                                 value = Km_izlazna,
-                                onValueChange = {izlazna->if(izlazna.all(){it.isDigit()}) Km_izlazna=izlazna},
+                                onValueChange = {izlazna->if(izlazna.all(){it.isDigit()})  Km_izlazna=izlazna},
                                 label = { Text("Tekst polje") },
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -620,6 +633,7 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
 fun PregledRuta(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: String){
     val courutineScope = rememberCoroutineScope()
     var lista_zavrsenih_ruta by remember { mutableStateOf<List<Ent2>>(emptyList()) }
+    var troskovi by remember { mutableStateOf(0) }
 
     LaunchedEffect(tipKamiona) {
         courutineScope.launch(Dispatchers.IO) {
@@ -627,16 +641,28 @@ fun PregledRuta(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: Stri
         }
     }
 
-    Column {
+    Column(modifier=Modifier.fillMaxSize().padding(20.dp).height(100.dp)) {
         lista_zavrsenih_ruta.forEach {
-            Text(
-                text = "Mjesto utovara-istovaraa: ${it.Mjesto_Utovara} - ${it.Mjesto_Istovara}\n" +
-                        "Usluge prevoza: ${it.Usluge_Prevoza_ZaIz}\n" +
-                        "Datum: ${it.Datum_Utovara}\n"+
-                        "Vrsta robe: ${it.Vrsta_Robe}\n" +
-                        "Kilometraza na utovaru: ${it.Km_Utovar}\n" +
-                        "Kilometraza na istovaru:"
-            )
+            courutineScope.launch(Dispatchers.IO) {
+                troskovi = bazaPodataka.dao().TroskoviPuta(tipKamiona, it.id)
+            }
+            Spacer(modifier.height(10.dp))
+            Box(
+                modifier=Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "${it.Mjesto_Polaska} - ${it.Mjesto_Utovara} - ${it.Mjesto_Istovara}\n" +
+                            "Usluge prevoza: ${it.Usluge_Prevoza_ZaIz}.\n" +
+                            "Datum polaska: ${it.Datum_Polaska}\n" +
+                            "Datum utovara: ${it.Datum_Utovara}\n" +
+                            "Vrsta robe: ${it.Vrsta_Robe}.\n" +
+                            "Teret: ${it.Teret_Robe_Kg}kg\n" +
+                            "Kilometraža na utovaru: ${it.Km_Utovar}km\n" +
+                            "Kilometraža na istovaru:${it.Km_Istovar}km\n" +
+                            "Troškovi prevoza: ${troskovi}"
+                )
+            }
         }
     }
 

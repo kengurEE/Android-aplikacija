@@ -12,6 +12,7 @@ data class Ent2(
     val Mjesto_Istovara : String,
     val Km_Utovar : Int,
     val Datum_Utovara : String,
+    val Datum_Polaska : String,
     val Mjesto_Polaska : String,
     val Km_Polaska : Int,
     val Usluge_Prevoza_ZaIz : String,

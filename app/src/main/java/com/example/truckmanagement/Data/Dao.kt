@@ -26,6 +26,9 @@ interface Dao {
         @Query("SELECT (SUM(Gorivo)+SUM(Putarina)+SUM(Odrzavanje)) FROM entiteti WHERE TipKamiona = :tipKamiona AND Datum LIKE '%/%/' || :godina")
         fun UkupniTroskoviGodina(tipKamiona: String, godina: String):Int
 
+        @Query("SELECT (SUM(Gorivo)+SUM(Putarina)+SUM(Odrzavanje)) FROM entiteti WHERE TipKamiona = :tipKamiona AND Id_Transporta = :id")
+        fun TroskoviPuta(tipKamiona: String, id:Int):Int
+
         //Decembar------------------------------
         @Query("SELECT SUM(Gorivo) FROM entiteti WHERE TipKamiona=:tipKamiona AND Datum LIKE '%/12/' || :godina")
         fun GorivoDecembar(tipKamiona: String, godina: String) : Int
