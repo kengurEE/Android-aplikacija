@@ -88,6 +88,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.intellij.lang.annotations.JdkConstants.HorizontalAlignment
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -508,7 +509,7 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
 
     LaunchedEffect(tipKamiona) {
         coroutineScope.launch(Dispatchers.IO) {
-            lista = bazaPodataka.dao2transport().TransportPodaci(tipKamiona)
+            lista = bazaPodataka.dao2transport().AktuelneRute(tipKamiona)
         }
     }
 
@@ -520,91 +521,93 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
         StringZaNavigaciju="home"
     }
 
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(20.dp)) {
+    Column(modifier = Modifier.fillMaxWidth().padding(20.dp).verticalScroll(rememberScrollState()))
+    {
+
             lista.forEach {
-                Spacer(modifier.height(10.dp))
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "${it.Mjesto_Utovara} - ${it.Mjesto_Istovara}\n" +
-                                "Datum: ${it.Datum_Utovara}\n" +
-                                "Usluge prevoza: ${it.Usluge_Prevoza_ZaIz}\n" +
-                                "Vrsta robe: ${it.Vrsta_Robe}\n" +
-                                "Kilometraza na utovaru: ${it.Km_Utovar}\n" +
-                                "Kraj:${it.Zavrsi}\n" +
-                                "Kilometraza na izlazu:${it.Km_Istovar}"
-                    )
-                }
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { navController.navigate("Dugme/$tipKamiona/${it.id}") }
-                ) {
+                    Spacer(modifier.height(10.dp))
                     Box(
-                        modifier=Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "Dodaj troškove")
+                        Text(
+                            text = "${it.Mjesto_Utovara} - ${it.Mjesto_Istovara}\n" +
+                                    "Datum utovara: ${it.Datum_Utovara}\n" +
+                                    "Usluge prevoza: ${it.Usluge_Prevoza_ZaIz}\n" +
+                                    "Vrsta robe: ${it.Vrsta_Robe}\n"
+                        )
                     }
-                }
 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            it.Zavrsi = true
-                            kliknutoZavrsi = true
-                        }
-                ) {
-                    Box(
-                        modifier=Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "Kraj transporta")
-                    }
-                }
-                if(kliknutoZavrsi==true) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp).clickable{
-                                it.Km_Istovar=Km_izlazna.toInt()
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    bazaPodataka.dao2transport().update(it)
-                                }
-                            }
+                            .clickable { navController.navigate("Dugme/$tipKamiona/${it.id}") }
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "Unesite kilometrazu na istovaru:",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            TextField(
-                                value = Km_izlazna,
-                                onValueChange = {izlazna->if(izlazna.all(){it.isDigit()})  Km_izlazna=izlazna},
-                                label = { Text("Tekst polje") },
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            Text(text = "Dodaj troškove")
                         }
                     }
-                }
+
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                it.Zavrsi = true
+                                kliknutoZavrsi = true
+                            }
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "Kraj transporta")
+                        }
+                    }
 
 
 
 
 
 
-                Text(text = "\n")
+
+                    Text(text = "\n")
+
+                    if (kliknutoZavrsi == true && it.Zavrsi==true) {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp).clickable {
+                                    it.Km_Istovar = Km_izlazna.toInt()
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        bazaPodataka.dao2transport().update(it)
+                                    }
+                                }
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                Text(
+                                    text = "Unesite kilometrazu na istovaru:",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                                TextField(
+                                    value = Km_izlazna,
+                                    onValueChange = { izlazna ->
+                                        if (izlazna.all() { it.isDigit() }) Km_izlazna = izlazna
+                                    },
+                                    label = { Text("Tekst polje") },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
             }
 
         Card(
@@ -633,7 +636,8 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
 fun PregledRuta(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: String){
     val courutineScope = rememberCoroutineScope()
     var lista_zavrsenih_ruta by remember { mutableStateOf<List<Ent2>>(emptyList()) }
-    var troskovi by remember { mutableStateOf(0) }
+
+
 
     LaunchedEffect(tipKamiona) {
         courutineScope.launch(Dispatchers.IO) {
@@ -641,11 +645,20 @@ fun PregledRuta(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: Stri
         }
     }
 
-    Column(modifier=Modifier.fillMaxSize().padding(20.dp).height(100.dp)) {
+    Column(modifier=Modifier.fillMaxSize().padding(20.dp).height(100.dp).verticalScroll(
+        rememberScrollState()
+    )) {
         lista_zavrsenih_ruta.forEach {
-            courutineScope.launch(Dispatchers.IO) {
-                troskovi = bazaPodataka.dao().TroskoviPuta(tipKamiona, it.id)
+            var troskovi by remember{ mutableStateOf(0) }
+            var id by remember{ mutableStateOf(0) }
+
+            id = it.id
+            LaunchedEffect(id,tipKamiona) {
+                courutineScope.launch(Dispatchers.IO) {
+                    troskovi = bazaPodataka.dao().TroskoviPuta(tipKamiona, id)
+                }
             }
+
             Spacer(modifier.height(10.dp))
             Box(
                 modifier=Modifier.fillMaxWidth(),
@@ -660,7 +673,7 @@ fun PregledRuta(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: Stri
                             "Teret: ${it.Teret_Robe_Kg}kg\n" +
                             "Kilometraža na utovaru: ${it.Km_Utovar}km\n" +
                             "Kilometraža na istovaru:${it.Km_Istovar}km\n" +
-                            "Troškovi prevoza: ${troskovi}"
+                            "Troškovi prevoza: ${troskovi}\n"
                 )
             }
         }

@@ -14,6 +14,9 @@ interface Dao2Transport {
     @Query("SELECT * FROM transport WHERE TipKamiona = :tipKamiona")
     fun TransportPodaci(tipKamiona:String): List<Ent2>
 
+    @Query("SELECT * FROM transport WHERE TipKamiona = :tipKamiona AND Zavrsi==false")
+    fun AktuelneRute(tipKamiona:String): List<Ent2>
+
     @Query("SELECT * FROM transport WHERE TipKamiona = :tipKamiona AND Zavrsi==true")
     fun ZavrsenTransport(tipKamiona: String): List<Ent2>
 
