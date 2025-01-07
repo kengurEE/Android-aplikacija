@@ -177,7 +177,7 @@ fun TruckManagementApp(bazaPodataka: BazaPodataka){
             NavigacioniEkran(bazaPodataka, "Truck BD-BP688", navController )
         }
         composable("NavigacijaBD-BV257_truck"){
-            NavigacioniEkran(bazaPodataka,"Truck: BD-BV257", navController)
+            NavigacioniEkran(bazaPodataka,"Truck BD-BV257", navController)
         }
         composable("DodajTransport/{tipKamiona}") {
             backStackEntry->val tip = backStackEntry.arguments?.getString("tipKamiona") ?: ""
@@ -190,6 +190,10 @@ fun TruckManagementApp(bazaPodataka: BazaPodataka){
         composable("PregledRuta/{tipKamiona}"){
             kamion -> val tip = kamion.arguments?.getString("tipKamiona")?:""
             PregledRuta(Modifier,bazaPodataka,tip)
+        }
+        composable("Servis/{tipKamiona}"){
+            tipkamiona -> var tip = tipkamiona.arguments?.getString("tipKamiona")?:""
+            Servis(bazaPodataka, tip)
         }
 
 
@@ -235,7 +239,7 @@ fun NavigacioniEkran(bazaPodataka: BazaPodataka, tipKamiona: String, navControll
                 horizontalArrangement = Arrangement.Center
             ){
                 Text(
-                    text = "Rute",
+                    text = "Aktuelan transport",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Black
                 )
@@ -258,7 +262,7 @@ fun NavigacioniEkran(bazaPodataka: BazaPodataka, tipKamiona: String, navControll
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Dodaj Transport",
+                    text = "Dodaj transport",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Black
                 )
@@ -281,11 +285,47 @@ fun NavigacioniEkran(bazaPodataka: BazaPodataka, tipKamiona: String, navControll
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Pregled ruta",
+                    text = "Pregled okončanog transporta",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Black
                 )
             }
+        }
+        Spacer(Modifier.height(10.dp))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .clickable { navController.navigate("PrikazTroskova/$tipKamiona") },
+            shape = RoundedCornerShape(12.dp)
+
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Prikaz troškova",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Black
+                )
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth().height(50.dp).clickable {navController.navigate("Servis/$tipKamiona")}
+        ){
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ){
+                Text(text="Servis", style = MaterialTheme.typography.bodyMedium, color = Color.Black)
+            }
+
         }
     }
 }
@@ -313,21 +353,21 @@ fun DodajTransport(modifier: Modifier,bazaPodataka: BazaPodataka, tipKamiona: St
 
 Column(modifier = Modifier
     .fillMaxSize()
-    .padding(20.dp)
     .verticalScroll(rememberScrollState())) {
 Card(
     modifier = Modifier.padding(10.dp),
     colors = CardDefaults.cardColors(
         containerColor = Color.White// Postavljanje pozadine na belu
-    )
+       )
 
 )
 {
+    Spacer(modifier.height(50.dp))
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = "$tipKamiona", style = MaterialTheme.typography.displaySmall)
+        Text(text = "Unesite transport", style = MaterialTheme.typography.displaySmall)
     }
 
     Box(
@@ -360,6 +400,7 @@ Card(
     }
 
     Spacer(modifier = Modifier.height(10.dp))
+    Text(text = "Datum polaska:")
     Box(
         modifier = Modifier.fillMaxWidth(),
 
@@ -371,6 +412,8 @@ Card(
         }
 
     }
+    Spacer(modifier = Modifier.height(5.dp))
+
 }
 
 
@@ -426,17 +469,16 @@ Card(
         label = { Text(text = "Mjesto istovara") }
     )
     Spacer(modifier = Modifier.height(10.dp))
+    Text(text = "Datum utovara:")
     DatePickerDocked(modifier = Modifier) { selektovan ->
         datum_utovara = selektovan
     }
-
-
 }
 
 Card(
     modifier = Modifier
         .fillMaxWidth()
-        .padding(8.dp)
+        .padding(50.dp)
         .clickable {
             if (mjesto_polaska.isNotEmpty() && km_polaska.isNotEmpty() &&
                 datum_polaska.isNotEmpty() && mjesto_utovara.isNotEmpty() &&
@@ -485,9 +527,13 @@ Card(
         }
 ) {
     Row(
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
 
     ) {
-        Text(text = "Dodaj transport")
+        Text(text = "Dodaj transport", style = MaterialTheme.typography.bodyMedium)
+
     }
 }
 if(porukagreske.isNotEmpty() && porukagreske!="pravo"){
@@ -609,7 +655,7 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
                         }
                     }
             }
-
+/*
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -623,6 +669,8 @@ fun Rute(modifier: Modifier,bazaPodataka: BazaPodataka,tipKamiona: String, navCo
                 Text(text = "Vrati se na Navigaciju", color = Color.White)
             }
         }
+
+ */
 
 
 
@@ -666,14 +714,14 @@ fun PregledRuta(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: Stri
             ) {
                 Text(
                     text = "${it.Mjesto_Polaska} - ${it.Mjesto_Utovara} - ${it.Mjesto_Istovara}\n" +
-                            "Usluge prevoza: ${it.Usluge_Prevoza_ZaIz}.\n" +
+                            "Usluge prevoza za: ${it.Usluge_Prevoza_ZaIz}.\n" +
                             "Datum polaska: ${it.Datum_Polaska}\n" +
                             "Datum utovara: ${it.Datum_Utovara}\n" +
                             "Vrsta robe: ${it.Vrsta_Robe}.\n" +
-                            "Teret: ${it.Teret_Robe_Kg}kg\n" +
-                            "Kilometraža na utovaru: ${it.Km_Utovar}km\n" +
-                            "Kilometraža na istovaru:${it.Km_Istovar}km\n" +
-                            "Troškovi prevoza: ${troskovi}\n"
+                            "Teret: ${it.Teret_Robe_Kg} kg\n" +
+                            "Kilometraža na utovaru: ${it.Km_Utovar} km\n" +
+                            "Kilometraža na istovaru: ${it.Km_Istovar} km\n" +
+                            "Troškovi prevoza: ${troskovi} €\n"
                 )
             }
         }
@@ -682,6 +730,57 @@ fun PregledRuta(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: Stri
 
 
 }
+
+@Composable
+fun Servis(bazaPodataka: BazaPodataka, tipKamiona: String){
+
+    var kilometrazaMalogServisa by remember { mutableStateOf(50000) }
+    var kilometrazaVelikogServisa by remember { mutableStateOf(130000) }
+    var trenutnaKilometraza by remember { mutableStateOf("") }
+    var PreostaloKilometaraDoMalog by remember { mutableStateOf(0) }
+    var PreostaloKilometaraDoVelikog by remember { mutableStateOf(0) }
+
+    var KilometrazaPoslednjeOdradjenogServisa by remember { mutableStateOf(0) }
+    var unosServisaMalog by remember { mutableStateOf("") }
+
+        //KilometrazaPoslednjeOdradjenogServisa = 880 000
+    // trenutna 900 000 --------->
+    Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
+        OutlinedTextField(
+            value = trenutnaKilometraza,
+            onValueChange = { novaKm ->
+                if (novaKm.all { it.isDigit() }) {
+                    trenutnaKilometraza = novaKm
+                }
+            },
+            label = { Text(text = "Unesite trenutnu kilometrazu") }
+        )
+
+        Button(onClick = {
+            PreostaloKilometaraDoMalog =
+                kilometrazaMalogServisa - (trenutnaKilometraza.toInt() - KilometrazaPoslednjeOdradjenogServisa) % kilometrazaMalogServisa
+            PreostaloKilometaraDoVelikog =
+                kilometrazaVelikogServisa - (trenutnaKilometraza.toInt() - KilometrazaPoslednjeOdradjenogServisa)% kilometrazaVelikogServisa
+
+
+        }) { Text(text = "Unesi") }
+
+        Text(text = "Do narednog malog servisa je preostalo: $PreostaloKilometaraDoMalog km")
+        Text(text = "Do narednog velikog servisa je preostalo: $PreostaloKilometaraDoVelikog km")
+
+        OutlinedTextField(
+            value = unosServisaMalog,
+            onValueChange = { novaKm ->
+                if (novaKm.all { it.isDigit() }) {
+                    unosServisaMalog = novaKm
+                }
+            },
+            label = { Text(text = "Unesite kilometrazu na kojoj je odradjen mali servis") }
+        )
+        
+    }
+}
+
 
 
 @SuppressLint("NewApi")
@@ -704,8 +803,7 @@ val coroutineScope= rememberCoroutineScope()
             modifier=Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ){
-        Text(text="Unos troškova za ${tipKamiona}\n" +
-                "ID rute je: $iD", style = MaterialTheme.typography.headlineSmall)
+        Text(text="Unos troškova za transport ID:$iD\n",style = MaterialTheme.typography.headlineSmall)
         }
         Spacer(modifier=modifier.height(60.dp))
 
@@ -796,32 +894,6 @@ val coroutineScope= rememberCoroutineScope()
                 color = Color.White)
             }
         }
-
-        Spacer(modifier = modifier.height(10.dp))
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .clickable { navController.navigate("PrikazTroskova/$tipKamiona") },
-            shape = RoundedCornerShape(12.dp)
-
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Prikaz troškova za $tipKamiona",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Black
-                )
-            }
-        }
-
         Spacer(modifier = modifier.height(10.dp))
 
         Card(
@@ -837,7 +909,7 @@ val coroutineScope= rememberCoroutineScope()
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ){
-                Text(text="Lista troškova za ${tipKamiona}", style = MaterialTheme.typography.bodyMedium, color = Color.Black
+                Text(text="Obrišite unos", style = MaterialTheme.typography.bodyMedium, color = Color.Black
                 )
             }
         }
@@ -1203,7 +1275,7 @@ Box(
         .fillMaxSize(), // Ispuni ceo ekran
     contentAlignment = Alignment.Center // Poravnaj sadržaj u centru Box-a
 ) {
-    Text(text ="$tipKamiona:", style = MaterialTheme.typography.displaySmall)
+    Text(text ="Prikaz troškova", style = MaterialTheme.typography.displaySmall)
 }
 
 Spacer(modifier.height(32.dp))
@@ -1249,7 +1321,7 @@ Ispis(trenutna_godina,Novembargorivo,Novembarodrzavanje,Novembarputarina,Novemba
 
 Spacer(modifier.height(8.dp))
 Ispis(trenutna_godina,gorivoDecembar,odrzavanjeDecembar,putarinaDecembar,Dukupno,"Decembar")
-
+    Spacer(modifier.height(20.dp))
 
 }
 }
@@ -1261,11 +1333,11 @@ Text(
     text = "$mjesec $godina:",
     fontWeight = FontWeight.Bold // Bold tekst za januar
 )
-Text(text = "  Gorivo: ${gorivo}€")
-Text(text = "  Održavanje: ${odrzavanje}€")
-Text(text = "  Putarina: ${putarina}€")
+Text(text = "  Gorivo: ${gorivo} €")
+Text(text = "  Održavanje: ${odrzavanje} €")
+Text(text = "  Putarina: ${putarina} €")
 Text(
-    text = "  Suma---------------$ukupno€",
+    text = "  Suma---------------$ukupno €",
     color = Color.Red // Zelena boja za sumu
 )
 }
