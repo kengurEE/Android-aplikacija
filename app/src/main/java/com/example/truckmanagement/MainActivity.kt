@@ -769,6 +769,12 @@ fun Servis(modifier: Modifier,bazaPodataka: BazaPodataka, tipKamiona: String){
             label = { Text(text = "Unesite trenutnu kilometrazu") }
         )
         val trenutna = if(trenutnaKilometraza.isNotEmpty()) trenutnaKilometraza.toInt() else 0
+LaunchedEffect(tipKamiona) {
+        corutine.launch(Dispatchers.IO) {
+            OdradjenVelikiKM = bazaPodataka.daoKilometraza().PoslednjiOdradjenServis("Veliki")
+            OdradjeMaliKM = bazaPodataka.daoKilometraza().PoslednjiOdradjenServis("Mali")
+        }
+}
 
         Button(onClick = {
             corutine.launch(Dispatchers.IO) {
@@ -785,28 +791,76 @@ fun Servis(modifier: Modifier,bazaPodataka: BazaPodataka, tipKamiona: String){
 
             if(trenutnaKilometraza.isEmpty()) {
                 PorukaGreske = "Unesite trenutnu kilometrazu!"
-            }else if(trenutna<OdradjeMaliKM || trenutna<OdradjenVelikiKM){
-                PorukaGreske="Unesite validnu kilometrazu(Unijeli ste manju kilometrazu od poslednje odradjenog servisa)"
-            }else if(trenutna >= OdradjeMaliKM+kilometrazaMalogServisa && trenutna<OdradjenVelikiKM+kilometrazaVelikogServisa){
-                PorukaGreske="URADITE MALI SERVIS! PREKORACILI STE PREPISANU KILOMETRAZU OD POSLEDNJEG MALOG SERVISA"
+            }else if(trenutna<OdradjeMaliKM && trenutna <OdradjenVelikiKM ){
+                PorukaGreske="Unesite validnu kilometrazu\nMali servis odradjen na: $OdradjeMaliKM km.\n Veliki servis odradjen na: $OdradjenVelikiKM km.)"
+                PorukaGreskeMali = ""
+                PorukaGreskeVeliki=""
+            }
+            else if(trenutna<OdradjeMaliKM && trenutna>=OdradjenVelikiKM+kilometrazaVelikogServisa){
+                PorukaGreske="Unesite validnu kilometrazu(Mali servis odradjen na: $OdradjeMaliKM km.)"
+                PorukaGreskeMali = ""
+                PorukaGreskeVeliki="Uradite Veliki Servis, prethodni odradjen na: $OdradjenVelikiKM km."
+            }else if(trenutna <OdradjenVelikiKM && trenutna>=OdradjeMaliKM+kilometrazaMalogServisa){
+                PorukaGreske="Unesite validnu kilometrazu(Veliki servis odradjen na $OdradjenVelikiKM km.)"
+                PorukaGreskeMali = "Uradite Mali Servis, prethodni odradjen na: $OdradjeMaliKM km."
+                PorukaGreskeVeliki=""
+            }
+            else if(trenutna >= OdradjeMaliKM+kilometrazaMalogServisa && trenutna<OdradjenVelikiKM+kilometrazaVelikogServisa){
+                PorukaGreske=""
+                PorukaGreskeVeliki=""
+                PorukaGreskeMali="Uradite mali servis, prethodni odradjen na: $OdradjeMaliKM km."
             }else if(trenutna >= OdradjenVelikiKM+kilometrazaVelikogServisa && trenutna < OdradjeMaliKM+kilometrazaMalogServisa ){
-                PorukaGreske="URADITE VELIKI SERVIS! PREKORACILI STE PREPISANU KILOMETRAZU OD POSLEDNJEG VELIKOG SERVISA"
+                PorukaGreske=""
+                PorukaGreskeVeliki="Uradite veliki servis, prethodni odradjen na: $OdradjenVelikiKM km."
+                PorukaGreskeMali=""
             }else if(trenutna >= OdradjeMaliKM+kilometrazaMalogServisa && trenutna >= OdradjenVelikiKM+kilometrazaVelikogServisa){
-                PorukaGreske="Istekli i veliki i mali"
+                PorukaGreske="Istekli i veliki i mali, prethodni odradjeni:\nMali: $OdradjeMaliKM km.\nVeliki: $OdradjenVelikiKM km."
+                PorukaGreskeMali = ""
+                PorukaGreskeVeliki=""
+            }else if(trenutna<OdradjeMaliKM ){
+                PorukaGreske="Unesite validnu kilometrazu(Mali servis)"
+                PorukaGreskeMali = ""
+                PorukaGreskeVeliki=""
+            }else if(trenutna<OdradjenVelikiKM){
+                PorukaGreske="Unesite validnu kilometrazu(Veliki servis)"
+                PorukaGreskeMali = ""
+                PorukaGreskeVeliki=""
             }
             else{
                 PorukaGreske = ""
+                PorukaGreskeMali = ""
+                PorukaGreskeVeliki=""
             }
         }) { Text(text = "Unesi") }
 
-        if(PorukaGreske.isNotEmpty() || PorukaGreskeMali.isNotEmpty() || PorukaGreskeVeliki.isNotEmpty()){
+        if(PorukaGreske.isNotEmpty() && PorukaGreskeVeliki.isEmpty() && PorukaGreskeMali.isEmpty()){
+            if(PorukaGreske=="Unesite validnu kilometrazu(Mali servis, Veliki servis)"){
+                Text(text = "Do narednog malog servisa je preostalo: 0 km")
+                Text(text = "Do narednog velikog servisa je preostalo: 0 km")
+            }else if(PorukaGreske=="Unesite validnu kilometrazu(Mali servis)"){
+                Text(text = "Do narednog velikog servisa je preostalo: $PreostaloKilometaraDoVelikog km")
+            }else if(PorukaGreske=="Unesite validnu kilometrazu(Veliki servis)"){
+                Text(text = "Do narednog malog servisa je preostalo: $PreostaloKilometaraDoMalog km")
+            }else if(PorukaGreske=="Istekli i veliki i mali"){
+                Text(text = "Do narednog malog servisa je preostalo: 0 km")
+                Text(text = "Do narednog velikog servisa je preostalo: 0 km")
+            }
 
+
+        }else if(PorukaGreske.isEmpty() && PorukaGreskeVeliki.isEmpty() && PorukaGreskeMali.isNotEmpty()){
             Text(text = "Do narednog malog servisa je preostalo: 0 km")
+            Text(text = "Do narednog velikog servisa je preostalo: $PreostaloKilometaraDoVelikog km")
+        }else if(PorukaGreske.isEmpty() && PorukaGreskeVeliki.isNotEmpty() && PorukaGreskeMali.isEmpty()){
+            Text(text = "Do narednog malog servisa je preostalo: $PreostaloKilometaraDoMalog km")
             Text(text = "Do narednog velikog servisa je preostalo: 0 km")
-
+        }else if(PorukaGreske.isNotEmpty() && PorukaGreskeMali.isNotEmpty()){
+            Text(text = "Uraditi mali servis | Ova kilometraza nije validna za veliki servis")
+        }else if(PorukaGreske.isNotEmpty() && PorukaGreskeVeliki.isNotEmpty()){
+            Text(text = "Uraditi veliki servis | Ova kilometraza nije validna za mali servis")
         }else{
             Text(text = "Do narednog malog servisa je preostalo: $PreostaloKilometaraDoMalog km")
             Text(text = "Do narednog velikog servisa je preostalo: $PreostaloKilometaraDoVelikog km")
+
         }
 
 
@@ -865,15 +919,23 @@ fun Servis(modifier: Modifier,bazaPodataka: BazaPodataka, tipKamiona: String){
             Text(text = PorukaGreske, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
 
         }
-        if(PorukaGreskeMali.isNotEmpty()){
+        if(PorukaGreske.isEmpty() && PorukaGreskeVeliki.isEmpty() && PorukaGreskeMali.isNotEmpty()){
 
             Text(text = PorukaGreskeMali, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
 
         }
-        if(PorukaGreskeVeliki.isNotEmpty()){
+        if(PorukaGreske.isEmpty() && PorukaGreskeVeliki.isNotEmpty() && PorukaGreskeMali.isEmpty()){
 
             Text(text = PorukaGreskeVeliki, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
 
+        }
+        if(PorukaGreske.isNotEmpty() && PorukaGreskeMali.isNotEmpty()){
+            Text(text = PorukaGreske, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
+            Text(text = PorukaGreskeMali, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
+        }
+        if(PorukaGreske.isNotEmpty() && PorukaGreskeVeliki.isNotEmpty()){
+            Text(text = PorukaGreske, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
+            Text(text = PorukaGreskeVeliki, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
         }
         
     }
