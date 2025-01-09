@@ -44,7 +44,9 @@ import java.util.concurrent.ConcurrentSkipListMap
 import androidx.compose.material3.OutlinedTextField
 
 import android.content.Context
+import android.icu.text.IDNA
 import android.util.Log
+import android.widget.Space
 import androidx.collection.mutableObjectIntMapOf
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -65,6 +67,7 @@ import androidx.compose.ui.modifier.modifierLocalMapOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.fontResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -80,6 +83,7 @@ import com.example.truckmanagement.Data.BazaPodataka
 import com.example.truckmanagement.Data.BazaPodataka_Impl
 import com.example.truckmanagement.Data.Ent
 import com.example.truckmanagement.Data.Ent2
+import com.example.truckmanagement.Data.EntKilometraza
 import com.example.truckmanagement.Data.Entitet
 //import com.example.truckmanagement.Data.entitiiiiii
 //import com.example.truckmanagement.Data.TruckDatabase
@@ -193,7 +197,7 @@ fun TruckManagementApp(bazaPodataka: BazaPodataka){
         }
         composable("Servis/{tipKamiona}"){
             tipkamiona -> var tip = tipkamiona.arguments?.getString("tipKamiona")?:""
-            Servis(bazaPodataka, tip)
+            Servis(Modifier,bazaPodataka, tip)
         }
 
 
@@ -732,7 +736,7 @@ fun PregledRuta(modifier: Modifier, bazaPodataka: BazaPodataka, tipKamiona: Stri
 }
 
 @Composable
-fun Servis(bazaPodataka: BazaPodataka, tipKamiona: String){
+fun Servis(modifier: Modifier,bazaPodataka: BazaPodataka, tipKamiona: String){
 
     var kilometrazaMalogServisa by remember { mutableStateOf(50000) }
     var kilometrazaVelikogServisa by remember { mutableStateOf(130000) }
@@ -740,11 +744,20 @@ fun Servis(bazaPodataka: BazaPodataka, tipKamiona: String){
     var PreostaloKilometaraDoMalog by remember { mutableStateOf(0) }
     var PreostaloKilometaraDoVelikog by remember { mutableStateOf(0) }
 
-    var KilometrazaPoslednjeOdradjenogServisa by remember { mutableStateOf(0) }
-    var unosServisaMalog by remember { mutableStateOf("") }
+    var KilometrazaPoslednjeOdradjenogMalogServisa by remember { mutableStateOf("") }
+    var OdradjeMaliKM by remember { mutableStateOf(0) }
+    var OdradjenVelikiKM by remember { mutableStateOf(0) }
+    var KilometrazaPoslednjeOdradjenogVelikogServisa by remember { mutableStateOf("") }
+    var corutine = rememberCoroutineScope()
+    var PorukaGreske by remember { mutableStateOf("") }
+    var PorukaGreskeMali by remember { mutableStateOf("") }
+    var PorukaGreskeVeliki by remember { mutableStateOf("") }
 
         //KilometrazaPoslednjeOdradjenogServisa = 880 000
-    // trenutna 900 000 --------->
+    // trenutna 925 ---------> naredni mali na 930 000
+
+
+
     Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
         OutlinedTextField(
             value = trenutnaKilometraza,
@@ -755,28 +768,113 @@ fun Servis(bazaPodataka: BazaPodataka, tipKamiona: String){
             },
             label = { Text(text = "Unesite trenutnu kilometrazu") }
         )
+        val trenutna = if(trenutnaKilometraza.isNotEmpty()) trenutnaKilometraza.toInt() else 0
 
         Button(onClick = {
+            corutine.launch(Dispatchers.IO) {
+                OdradjenVelikiKM = bazaPodataka.daoKilometraza().PoslednjiOdradjenServis("Veliki")
+                OdradjeMaliKM = bazaPodataka.daoKilometraza().PoslednjiOdradjenServis("Mali")
+            }
+
             PreostaloKilometaraDoMalog =
-                kilometrazaMalogServisa - (trenutnaKilometraza.toInt() - KilometrazaPoslednjeOdradjenogServisa) % kilometrazaMalogServisa
+                kilometrazaMalogServisa - (trenutna - OdradjeMaliKM) % kilometrazaMalogServisa
             PreostaloKilometaraDoVelikog =
-                kilometrazaVelikogServisa - (trenutnaKilometraza.toInt() - KilometrazaPoslednjeOdradjenogServisa)% kilometrazaVelikogServisa
+                kilometrazaVelikogServisa - (trenutna - OdradjenVelikiKM)% kilometrazaVelikogServisa
 
 
+
+            if(trenutnaKilometraza.isEmpty()) {
+                PorukaGreske = "Unesite trenutnu kilometrazu!"
+            }else if(trenutna<OdradjeMaliKM || trenutna<OdradjenVelikiKM){
+                PorukaGreske="Unesite validnu kilometrazu(Unijeli ste manju kilometrazu od poslednje odradjenog servisa)"
+            }else if(trenutna >= OdradjeMaliKM+kilometrazaMalogServisa && trenutna<OdradjenVelikiKM+kilometrazaVelikogServisa){
+                PorukaGreske="URADITE MALI SERVIS! PREKORACILI STE PREPISANU KILOMETRAZU OD POSLEDNJEG MALOG SERVISA"
+            }else if(trenutna >= OdradjenVelikiKM+kilometrazaVelikogServisa && trenutna < OdradjeMaliKM+kilometrazaMalogServisa ){
+                PorukaGreske="URADITE VELIKI SERVIS! PREKORACILI STE PREPISANU KILOMETRAZU OD POSLEDNJEG VELIKOG SERVISA"
+            }else if(trenutna >= OdradjeMaliKM+kilometrazaMalogServisa && trenutna >= OdradjenVelikiKM+kilometrazaVelikogServisa){
+                PorukaGreske="Istekli i veliki i mali"
+            }
+            else{
+                PorukaGreske = ""
+            }
         }) { Text(text = "Unesi") }
 
-        Text(text = "Do narednog malog servisa je preostalo: $PreostaloKilometaraDoMalog km")
-        Text(text = "Do narednog velikog servisa je preostalo: $PreostaloKilometaraDoVelikog km")
+        if(PorukaGreske.isNotEmpty() || PorukaGreskeMali.isNotEmpty() || PorukaGreskeVeliki.isNotEmpty()){
+
+            Text(text = "Do narednog malog servisa je preostalo: 0 km")
+            Text(text = "Do narednog velikog servisa je preostalo: 0 km")
+
+        }else{
+            Text(text = "Do narednog malog servisa je preostalo: $PreostaloKilometaraDoMalog km")
+            Text(text = "Do narednog velikog servisa je preostalo: $PreostaloKilometaraDoVelikog km")
+        }
+
+
+
 
         OutlinedTextField(
-            value = unosServisaMalog,
+            value = KilometrazaPoslednjeOdradjenogMalogServisa,
             onValueChange = { novaKm ->
                 if (novaKm.all { it.isDigit() }) {
-                    unosServisaMalog = novaKm
+                    KilometrazaPoslednjeOdradjenogMalogServisa = novaKm
                 }
             },
-            label = { Text(text = "Unesite kilometrazu na kojoj je odradjen mali servis") }
+            label = { Text(text = "Kilometraza poslednjeg malog servisa", style = MaterialTheme.typography.bodyMedium)}
         )
+        OutlinedTextField(
+            value = KilometrazaPoslednjeOdradjenogVelikogServisa,
+            onValueChange = { novaKm ->
+                if (novaKm.all { it.isDigit() }) {
+                    KilometrazaPoslednjeOdradjenogVelikogServisa = novaKm
+                }
+            },
+            label = { Text(text = "Kilometraza poslednjeg velikog servisa", style = MaterialTheme.typography.bodyMedium)}
+        )
+        Button(onClick = {
+            val KM_mali = EntKilometraza(
+                Kilometraza = KilometrazaPoslednjeOdradjenogMalogServisa.toInt(),
+                TipKilometraze = "Mali",
+            )
+
+            corutine.launch(Dispatchers.IO) {
+                bazaPodataka.daoKilometraza().Insert(KM_mali)
+            }
+            corutine.launch(Dispatchers.IO) {
+                OdradjeMaliKM = bazaPodataka.daoKilometraza().PoslednjiOdradjenServis("Mali")
+            }
+
+        }) { Text(text = "Unesite kilometrazu malog") }
+        Spacer(modifier.height(10.dp) )
+        Button(onClick = {
+            val KM_veliki = EntKilometraza(
+                Kilometraza = KilometrazaPoslednjeOdradjenogVelikogServisa.toInt(),
+                TipKilometraze = "Veliki",
+            )
+
+            corutine.launch(Dispatchers.IO) {
+                bazaPodataka.daoKilometraza().Insert(KM_veliki)
+            }
+            corutine.launch(Dispatchers.IO) {
+                OdradjenVelikiKM = bazaPodataka.daoKilometraza().PoslednjiOdradjenServis("Veliki")
+            }
+
+        }) { Text(text = "Unesite kilometrazu velikog") }
+
+        if(PorukaGreske.isNotEmpty()){
+
+            Text(text = PorukaGreske, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
+
+        }
+        if(PorukaGreskeMali.isNotEmpty()){
+
+            Text(text = PorukaGreskeMali, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
+
+        }
+        if(PorukaGreskeVeliki.isNotEmpty()){
+
+            Text(text = PorukaGreskeVeliki, style = MaterialTheme.typography.bodyMedium, color = Color.Red)
+
+        }
         
     }
 }
